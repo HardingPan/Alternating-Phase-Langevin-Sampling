@@ -1,0 +1,13 @@
+name: apls
+channels:
+  - pytorch
+  - conda-forge
+dependencies:
+  - python=3.9.18
+  - pip=23.3.1
+  - pytorch=2.1.2
+  - torchvision=0.16
+  - pip:
+    - numpy==1.26.2
+    - matplotlib==3.8.2
+    - tqdm==4.66.1
