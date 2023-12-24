@@ -1,6 +1,6 @@
 '''
     Bias-Free DnCNN
-    Code from https://github.com/LabForComputationalVision/universal_inverse_problem/blob/943b9ed99e35a4af86c36c413e2ca70ab320e8bc/code/network.py
+    Architecture from https://github.com/LabForComputationalVision/universal_inverse_problem/blob/943b9ed99e35a4af86c36c413e2ca70ab320e8bc/code/network.py
     BFCNN proposed by https://arxiv.org/abs/1906.05478
     DnCNN proposed by https://arxiv.org/abs/1608.03981
 '''
@@ -8,7 +8,6 @@
 import argparse
 import os
 from utils import *
-from plot_utils import *
 from tqdm import tqdm
 import torch
 import torch.nn as nn
@@ -88,6 +87,8 @@ if __name__ == "__main__":
 
     image_tensors = []
     for image_file in tqdm(os.listdir(args.data_path)):
+        if os.path.splitext(image_file)[1] not in [".png", ".jpg", ".jpeg"]:
+            continue
         test_image = TestImage(image_path=os.path.join(args.data_path, image_file), grayscale=args.grayscale)
         image = test_image.image
         
@@ -96,5 +97,5 @@ if __name__ == "__main__":
         denoised_image = noisy_image - residual.squeeze()
         
         save_path = os.path.join(args.results_path, os.path.splitext(image_file)[0] + "_denoised_figure" + os.path.splitext(image_file)[1])
-        plot_denoised_image(image.permute(1, 2, 0), noisy_image.permute(1, 2, 0), denoised_image.permute(1, 2, 0), save_path)
+        plot_images([image.permute(1, 2, 0), noisy_image.permute(1, 2, 0), denoised_image.permute(1, 2, 0)], ["Ground Truth", "Noisy", "Denoised"],  save_path)
 
