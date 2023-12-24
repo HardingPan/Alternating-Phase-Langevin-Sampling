@@ -8,23 +8,20 @@ class TestImage:
         self.image_path = image_path
         self.grayscale = grayscale
         self.crop = crop
-
         self.device = 'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu'
-
         self.image = self.load()
     
     def load(self):
         image = np.float32(plt.imread(self.image_path))
         if np.max(image) > 1:
             image /= 255
-
         if len(image.shape) == 3:
             if self.grayscale:
                 image = np.expand_dims(np.dot(image[...,:3],[0.299, 0.587, 0.144]), axis=2)
             x = torch.tensor(image).permute(2,0,1)
         else:
             if not self.grayscale:
-                x = np.repeat(image.reshape(1, image.shape[0], image.shape[1]), 3, axis=0)
+                x = torch.tensor(np.repeat(image.reshape(1, image.shape[0], image.shape[1]), 3, axis=0))
             else:
                 x = torch.tensor(image.reshape(1, image.shape[0], image.shape[1]))
 

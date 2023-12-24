@@ -42,7 +42,8 @@ if __name__ == "__main__":
 
     parser.add_argument("--data-path", default="../data/grayscale", help="path to data directory")
     parser.add_argument("--results-path", default="../results/corruption_results", help="path to results directory")
-    parser.add_argument("--grayscale", default=True)
+    parser.add_argument('--grayscale', action='store_true', default=True)
+    parser.add_argument('--color', dest='grayscale', action='store_false')
     parser.add_argument("--alpha", default=3, type=int)
     
     args = parser.parse_args()

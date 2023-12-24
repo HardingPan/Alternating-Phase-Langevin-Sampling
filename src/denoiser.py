@@ -13,7 +13,6 @@ import torch
 import torch.nn as nn
 import torchvision
 
-
 class BFCNN(nn.Module):
 
     def __init__(self, padding=1, num_kernels=64, kernel_size=3, num_layers=20, num_channels=1):
@@ -65,14 +64,9 @@ if __name__ == "__main__":
 
     parser.add_argument("--data-path", default="../data/grayscale", help="path to data directory")
     parser.add_argument("--results-path", default="../results/denoiser_results", help="path to results directory")
-    parser.add_argument("--pretrained-path", default="../models/BFDnCNN_BSD400_Gray.pt", help="path to pretrained denoiser")
-    parser.add_argument("--noise-std", default=25/(255), type=float, help="standard deviation of additive gaussian noise")
-    
-    parser.add_argument("--grayscale", default=True)
-    parser.add_argument("--padding", default=1, type=int)
-    parser.add_argument("--num-kernels", default=64, type=int)
-    parser.add_argument("--kernel-size", default=3, type=int)
-    parser.add_argument("--num-layers", default=20, type=int)
+    parser.add_argument("--noise-std", default=25, type=float, help="standard deviation of additive gaussian noise")
+    parser.add_argument('--grayscale', action='store_true', default=True)
+    parser.add_argument('--color', dest='grayscale', action='store_false')
 
     args = parser.parse_args()
 
@@ -81,8 +75,10 @@ if __name__ == "__main__":
 
     device = 'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu'
     num_channels = 1 if args.grayscale else 3
-    denoiser = BFCNN(padding=args.padding, num_kernels=args.num_kernels, kernel_size=args.kernel_size, num_layers=args.num_layers).to(device)
-    denoiser.load_state_dict(torch.load(args.pretrained_path, map_location=device))
+    pretrained_path = "../models/BFDnCNN_BSD400_Gray.pt" if args.grayscale else "../models/BFDnCNN_BSD300_Color.pt"
+
+    denoiser = BFCNN(num_channels=num_channels).to(device)
+    denoiser.load_state_dict(torch.load(pretrained_path, map_location=device))
     denoiser.eval()
 
     image_tensors = []
@@ -92,7 +88,8 @@ if __name__ == "__main__":
         test_image = TestImage(image_path=os.path.join(args.data_path, image_file), grayscale=args.grayscale)
         image = test_image.image
         
-        noisy_image = image + torch.randn_like(image)*args.noise_std
+        noisy_image = image + torch.randn(image.shape).to(device)*(args.noise_std/255)
+
         residual = denoiser(noisy_image.unsqueeze(0))
         denoised_image = noisy_image - residual.squeeze()
         
