@@ -73,7 +73,7 @@ if __name__ == "__main__":
     if not os.path.exists(args.results_path):
         os.makedirs(args.results_path)
 
-    device = 'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu'
+    device, _ = get_devices()
     num_channels = 1 if args.grayscale else 3
     pretrained_path = "../models/BFDnCNN_BSD400_Gray.pt" if args.grayscale else "../models/BFDnCNN_BSD300_Color.pt"
 

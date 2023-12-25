@@ -3,12 +3,18 @@ import numpy as np
 import torch
 import torchvision
 
+def get_devices():
+    device = 'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu'
+    fft_device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    return device, fft_device
+
 class TestImage:
-    def __init__(self, image_path, grayscale=True, crop=True):
+    def __init__(self, image_path, size=None, grayscale=True, crop=True):
         self.image_path = image_path
         self.grayscale = grayscale
         self.crop = crop
-        self.device = 'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu'
+        self.size = size
+        self.device, _ = get_devices()
         self.image = self.load()
     
     def load(self):
@@ -24,7 +30,10 @@ class TestImage:
                 x = torch.tensor(np.repeat(image.reshape(1, image.shape[0], image.shape[1]), 3, axis=0))
             else:
                 x = torch.tensor(image.reshape(1, image.shape[0], image.shape[1]))
-
+        
+        if self.size:
+            x = torchvision.transforms.Resize(self.size, antialias=True)(x)
+        
         if self.crop:
             x = torchvision.transforms.CenterCrop(min(x.shape[1], x.shape[2]))(x)
 

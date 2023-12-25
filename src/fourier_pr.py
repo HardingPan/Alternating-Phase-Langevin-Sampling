@@ -13,11 +13,10 @@ class FourierPR:
 
         self.pad_length = int(self.length/2)
 
-        self.device = 'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu'
-        self.fft_device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self.device, self.fft_device = get_devices()
 
-        mask = torch.ones((self.length+2,self.length+2)).to(self.device)
-        mask_pad = (self.pad_length-1,self.pad_length-1,self.pad_length-1,self.pad_length-1)
+        mask = torch.ones((self.length,self.length)).to(self.device)
+        mask_pad = (self.pad_length,self.pad_length,self.pad_length,self.pad_length)
         self.mask = torch.nn.functional.pad(mask, mask_pad, 'constant')
 
         z = torch.fft.fft2(self.pad(x).to(self.fft_device))
@@ -28,14 +27,18 @@ class FourierPR:
         pad = (self.pad_length, self.pad_length, self.pad_length, self.pad_length)
         return torch.nn.functional.pad(x, pad, 'constant')
 
-    def A(self, x):
-        return torch.abs(torch.fft.fft2(self.pad(x).to(self.fft_device))).to(self.device)
+    def A(self, x, pad=True):
+        if pad:     
+            return torch.abs(torch.fft.fft2(self.pad(x).to(self.fft_device))).to(self.device)
+        return torch.abs(torch.fft.fft2(x.to(self.fft_device))).to(self.device)
     
     def crop(self, x):  
         return torchvision.transforms.functional.crop(x, self.pad_length, self.pad_length, self.length, self.length)
 
-    def AT(self, x):
-        return self.crop(torch.real(torch.fft.ifft2(x.to(self.fft_device))).to(self.device))
+    def AT(self, x, crop=True):
+        if crop:
+            return self.crop(torch.real(torch.fft.ifft2(x.to(self.fft_device))).to(self.device))
+        return torch.real(torch.fft.ifft2(x.to(self.fft_device))).to(self.device)
 
 if __name__ == "__main__":      
     parser = argparse.ArgumentParser()
