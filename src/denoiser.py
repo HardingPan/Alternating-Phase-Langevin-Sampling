@@ -11,7 +11,6 @@ from utils import *
 from tqdm import tqdm
 import torch
 import torch.nn as nn
-import torchvision
 
 class BFCNN(nn.Module):
 

@@ -2,6 +2,7 @@ import matplotlib.pylab as plt
 import numpy as np
 import torch
 import torchvision
+from PIL import Image
 
 def get_devices():
     device = 'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu'
@@ -50,4 +51,9 @@ def plot_images(images, titles, save_path):
         plt.title(titles[i])
     
     plt.savefig(save_path)
+
+def save_gif(images, save_path, sample_rate=5):
+    images = [Image.fromarray(img.squeeze().detach().cpu().numpy()*255) for img in images]
+    images = images[:len(images):sample_rate]
+    images[0].save(save_path, save_all=True, append_images=images[1:], duration=10, loop=0)
         

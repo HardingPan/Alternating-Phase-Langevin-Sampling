@@ -29,8 +29,8 @@ class FourierPR:
 
     def A(self, x, pad=True):
         if pad:     
-            return torch.abs(torch.fft.fft2(self.pad(x).to(self.fft_device))).to(self.device)
-        return torch.abs(torch.fft.fft2(x.to(self.fft_device))).to(self.device)
+            return torch.fft.fft2(self.pad(x).to(self.fft_device))
+        return torch.fft.fft2(x.to(self.fft_device))
     
     def crop(self, x):  
         return torchvision.transforms.functional.crop(x, self.pad_length, self.pad_length, self.length, self.length)

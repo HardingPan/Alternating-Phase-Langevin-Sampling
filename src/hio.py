@@ -8,18 +8,18 @@ from fourier_pr import *
 from skimage.metrics import peak_signal_noise_ratio as psnr
 
 def hio(task, iters, prev=None, guess=None):
-
-    x_c = task.noisy_measurements
+     
+    _, fft_device = get_devices()
+    x_c = task.noisy_measurements.to(fft_device)
     l = 2*task.length
     beta = 0.8
-    _, fft_device = get_devices()
 
     if guess is None:
         rand_phase = torch.exp(1j * torch.randn(x_c.shape) * 2 * math.pi).to(fft_device)
-        guess = torch.mul(x_c.to(fft_device), rand_phase)
+        guess = torch.mul(x_c, rand_phase)
 
     for i in range(iters):
-        update = torch.mul(x_c.to(fft_device), torch.exp(1j * torch.angle(guess)))
+        update = torch.mul(x_c, torch.exp(1j * torch.angle(guess)))
         inv = task.AT(update, crop=False)
 
         if prev is None:
@@ -37,26 +37,30 @@ def hio(task, iters, prev=None, guess=None):
 def hio_init(task, num_starts=100, start_iters=50, full_iters=1000):
     
     best_residual = float('inf')
-    best_recon = None
     best_prev = None
     best_guess = None
-
-    device, fft_device = get_devices()
+    device, _ = get_devices()
 
     for i in range(num_starts):
         prev, guess = hio(task, start_iters)
         recon = task.crop(prev)
-        residual = torch.norm(task.noisy_measurements - task.A(recon))
+        residual = torch.norm(task.noisy_measurements - torch.abs(task.A(recon)).to(device))
 
         if residual < best_residual:
             best_residual = residual
             best_guess = guess
             best_prev = prev
-            best_recon = recon
 
     final_recon, _ = hio(task, full_iters, prev=best_prev, guess=best_guess)
 
     return task.crop(final_recon)
+
+def correct_rotation(gt, recon):
+    rotated = torchvision.transforms.functional.rotate(recon, 180)
+
+    if torch.norm(rotated - gt) < torch.norm(recon - gt):
+        return rotated
+    return recon
 
 
 if __name__ == "__main__":      
@@ -85,6 +89,8 @@ if __name__ == "__main__":
         iters = 100
 
         hio_recon = hio_init(fpr, num_starts=10)
+
+        hio_recon = correct_rotation(image, hio_recon)
         
         save_path = os.path.join(args.results_path, os.path.splitext(image_file)[0] + "_hio_figure" + os.path.splitext(image_file)[1])
 
