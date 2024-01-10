@@ -9,6 +9,7 @@ class FourierPR:
     def __init__(self, x, alpha):
         super(FourierPR, self).__init__()
         
+        self.x = x
         _, _, self.length = x.shape
 
         self.pad_length = int(self.length/2)
@@ -19,7 +20,7 @@ class FourierPR:
         mask_pad = (self.pad_length,self.pad_length,self.pad_length,self.pad_length)
         self.mask = torch.nn.functional.pad(mask, mask_pad, 'constant')
 
-        z = torch.fft.fft2(self.pad(x).to(self.fft_device))
+        z = self.A(x)
         noise = alpha*torch.abs(z)*torch.randn(z.shape)
         self.noisy_measurements = torch.sqrt(torch.clamp(torch.abs(z)**2 + noise, min = 0)).to(self.device)
 

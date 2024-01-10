@@ -59,6 +59,9 @@ def apls(bfcnn, task, y_init, ground_truth, iters=700, eta=0.1, h0=0.01, beta=1e
         return image, intermediate_ys
 
 def get_apls_eta(bfcnn, task, y_init, ground_truth, iters=50, h0=0.01, beta=1e-5, min_eta=0, max_eta=1, num_grid=5):
+
+    device, _ = get_devices()
+
     etas = np.arange(min_eta, max_eta, (max_eta - min_eta)/num_grid)
 
     best_residual = float('inf')
@@ -70,7 +73,6 @@ def get_apls_eta(bfcnn, task, y_init, ground_truth, iters=50, h0=0.01, beta=1e-5
         if residual < best_residual:
             best_residual = residual
             best_eta = eta
-        print(best_eta)
     
     return best_eta
 

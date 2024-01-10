@@ -52,6 +52,8 @@ def plot_images(images, titles, save_path):
     
     plt.savefig(save_path)
 
+    print(f"Figure saved at {save_path}")
+
 def save_gif(images, save_path, sample_rate=5):
     images = [Image.fromarray(img.squeeze().detach().cpu().numpy()*255) for img in images]
     images = images[:len(images):sample_rate]
