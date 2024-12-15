@@ -13,8 +13,8 @@ from skimage.metrics import peak_signal_noise_ratio as psnr
 if __name__ == "__main__":      
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--image-path", default="../data/grayscale/cameraman.png", help="path to image")
-    parser.add_argument("--results-path", default="../results/eval_results", help="path to results directory")
+    parser.add_argument("--image-path", default="/Alternating-Phase-Langevin-Sampling/data/grayscale/cameraman.png", help="path to image")
+    parser.add_argument("--results-path", default="/Alternating-Phase-Langevin-Sampling/results/eval_results", help="path to results directory")
     parser.add_argument("--image-size", default=128, type=int, help="size to resize images to")
     parser.add_argument("--alpha", default=3, type=int)
     
@@ -23,21 +23,24 @@ if __name__ == "__main__":
     if not os.path.exists(args.results_path):
         os.makedirs(args.results_path)
 
-    device, _ = get_devices()
+    device = 'cuda'
     num_channels = 1
-    bfcnn_pretrained_path = "../models/BFDnCNN_BSD400_Gray.pt"
+    bfcnn_pretrained_path = "/Alternating-Phase-Langevin-Sampling/models/BFDnCNN_BSD400_Gray.pt"
 
     bfcnn = BFCNN(num_channels=num_channels).to(device)
     bfcnn.load_state_dict(torch.load(bfcnn_pretrained_path, map_location=device))
     bfcnn.eval()
 
-    dncnn_model_paths = ['../models/DnCNN_50_Gray.pth','../models/DnCNN_25_Gray.pth','../models/DnCNN_15_Gray.pth','../models/DnCNN_10_Gray.pth']
+    dncnn_model_paths = ['/Alternating-Phase-Langevin-Sampling/models/DnCNN_50_Gray.pth',\
+                         '/Alternating-Phase-Langevin-Sampling/models/DnCNN_25_Gray.pth',\
+                         '/Alternating-Phase-Langevin-Sampling/models/DnCNN_15_Gray.pth',\
+                         '/Alternating-Phase-Langevin-Sampling/models/DnCNN_10_Gray.pth']
 
     test_image = TestImage(image_path=args.image_path, grayscale=True, size=args.image_size)
     image = test_image.image
     _, image_file = os.path.split(args.image_path)
-
-    fpr = FourierPR(image, args.alpha)
+    
+    fpr = FourierPR(image, torch.tensor(args.alpha).to(device))
     iters = 100
 
     hio_recon = hio_init(fpr, num_starts=50)

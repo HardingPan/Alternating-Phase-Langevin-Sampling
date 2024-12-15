@@ -21,7 +21,8 @@ class FourierPR:
         self.mask = torch.nn.functional.pad(mask, mask_pad, 'constant')
 
         z = self.A(x)
-        noise = alpha*torch.abs(z)*torch.randn(z.shape)
+        print(alpha.device, z.device)
+        noise = alpha*torch.abs(z)*(torch.randn(z.shape).to(z.device))
         self.noisy_measurements = torch.sqrt(torch.clamp(torch.abs(z)**2 + noise, min = 0)).to(self.device)
 
     def pad(self, x):
